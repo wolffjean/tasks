@@ -8,6 +8,7 @@ import br.com.udemy.tasks.controller.dto.TaskInsertDTO;
 import br.com.udemy.tasks.controller.dto.TaskUpdateDTO;
 import br.com.udemy.tasks.model.TaskState;
 import br.com.udemy.tasks.service.TaskService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -47,7 +48,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public Mono<TaskDTO> createTask(@RequestBody TaskInsertDTO taskInsertDTO){
+    public Mono<TaskDTO> createTask(@RequestBody @Valid TaskInsertDTO taskInsertDTO){
         return service.insert(insertConverter.convert(taskInsertDTO))
                  .doOnNext(it -> LOG.info("Saved task with id {}", it.getId()))
                  .map(converter::convert);
@@ -55,7 +56,7 @@ public class TaskController {
 
 
     @PutMapping
-    public Mono<TaskDTO> updateTask(@RequestBody TaskUpdateDTO updateDTO){
+    public Mono<TaskDTO> updateTask(@RequestBody @Valid TaskUpdateDTO updateDTO){
         return service.update(updateConverter.convert(updateDTO))
                 .doOnNext(it -> LOG.info("Update task with id {}", it.getId()))
                 .map(converter::convert);

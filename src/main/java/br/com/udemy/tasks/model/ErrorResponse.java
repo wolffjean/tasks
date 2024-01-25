@@ -1,6 +1,7 @@
 package br.com.udemy.tasks.model;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
 
 public class ErrorResponse {
 
@@ -40,6 +41,12 @@ public class ErrorResponse {
                 .withMessage(e.getMessage())
                 .build();
     }
+    public static ErrorResponse invalidArgumentsError(FieldError e) {
+        return ErrorResponse.builder().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .withMessage(e.getDefaultMessage())
+                .build();
+    }
+
 
 
     public static class Builder{
