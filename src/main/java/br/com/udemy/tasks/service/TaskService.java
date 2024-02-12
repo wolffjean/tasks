@@ -1,6 +1,7 @@
 package br.com.udemy.tasks.service;
 
 import br.com.udemy.tasks.exception.TaskNotFoundException;
+import br.com.udemy.tasks.messaging.TaskNotificationProducer;
 import br.com.udemy.tasks.model.Address;
 import br.com.udemy.tasks.model.Task;
 import br.com.udemy.tasks.repository.TaskCustomRepository;
@@ -22,10 +23,13 @@ public class TaskService {
 
     private final AddressService addressService;
 
-    public TaskService(TaskRepository repository, TaskCustomRepository taskCustomRepository, AddressService addressService){
+    private final TaskNotificationProducer producer;
+
+    public TaskService(TaskRepository repository, TaskCustomRepository taskCustomRepository, AddressService addressService, TaskNotificationProducer producer){
         this.repository = repository;
         this.taskCustomRepository = taskCustomRepository;
         this.addressService = addressService;
+        this.producer = producer;
     }
 
     public Mono<Task> insert(Task task){
@@ -66,8 +70,16 @@ public class TaskService {
                 .flatMap(it -> updateAddress(it.getT1(), it.getT2()))
                 .map(Task::start)
                 .flatMap(repository::save)
+                .flatMap(producer::sendNotification)
                 .switchIfEmpty(Mono.error(TaskNotFoundException::new))
                 .doOnError(error -> LOG.error("Error on start task id {}", id, error));
+    }
+
+    public Mono<Task> done(Task task){
+        return Mono.just(task)
+                .doOnNext(it -> LOG.info("Finishing task. ID {}", task.getId()))
+                .map(Task::done)
+                .flatMap(repository::save);
     }
 
     private Mono<Task> updateAddress(Task task, Address address){

@@ -87,6 +87,12 @@ public class Task {
         return new Builder(task);
     }
 
+    public Task done() {
+        return builderFrom(this)
+                .withState(TaskState.DONE)
+                .build();
+    }
+
     public static class Builder {
 
         private String id;
